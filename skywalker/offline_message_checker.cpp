@@ -305,8 +305,8 @@ void OffLineMessageChecker::resumeSession(bool retry)
                         saveSession(*mBsky->getSession());
                         resumeSession(true);
                     },
-                    [this](const QString& error, const QString& msg){
-                        qDebug() << "Session could not be refreshed:" << error << " - " << msg;
+                    [this](const QString& lError, const QString& lMsg){
+                        qDebug() << "Session could not be refreshed:" << lError << " - " << lMsg;
                         exit(EXIT_OK);
                     });
             }

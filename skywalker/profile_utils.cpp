@@ -71,12 +71,12 @@ void ProfileUtils::getHandle(const QString& did)
         return;
 
     bskyClient()->getProfile(did,
-        [this, presence=getPresence()](auto profile){
+        [this, presence=getPresence()](auto localProfile){
             if (!presence)
                 return;
 
-            AuthorCache::instance().put(BasicProfile(profile));
-            emit handle(profile->mHandle, profile->mDisplayName.value_or(""), profile->mDid);
+            AuthorCache::instance().put(BasicProfile(localProfile));
+            emit handle(localProfile->mHandle, localProfile->mDisplayName.value_or(""), localProfile->mDid);
         },
         [](const QString& error, const QString& msg){
             qDebug() << "getProfileView failed:" << error << " - " << msg;
@@ -122,11 +122,11 @@ void ProfileUtils::updateProfile(const QString& did, const QString& name, const 
         }
 
         bskyClient()->uploadBlob(blob, mimeType,
-            [this, presence=getPresence(), did, name, description, bannerImgSource, updateBanner](auto blob){
+            [this, presence=getPresence(), did, name, description, bannerImgSource, updateBanner](auto localBlob){
                 if (!presence)
                     return;
 
-                continueUpdateProfile(did, name, description, std::move(blob), true, bannerImgSource, updateBanner);
+                continueUpdateProfile(did, name, description, std::move(localBlob), true, bannerImgSource, updateBanner);
             },
             [this, presence=getPresence()](const QString& error, const QString& msg){
                 if (!presence)
@@ -164,13 +164,13 @@ void ProfileUtils::continueUpdateProfile(const QString& did, const QString& name
         mDidAvatarBlobMap[did] = std::move(avatarBlob);
 
         bskyClient()->uploadBlob(blob, mimeType,
-            [this, presence=getPresence(), did, name, description, updateAvatar](auto blob){
+            [this, presence=getPresence(), did, name, description, updateAvatar](auto localBlob){
                 if (!presence)
                     return;
 
                 auto avaBlob = std::move(mDidAvatarBlobMap[did]);
                 mDidAvatarBlobMap.erase(did);
-                continueUpdateProfile(did, name, description, std::move(avaBlob), updateAvatar, std::move(blob), true);
+                continueUpdateProfile(did, name, description, std::move(avaBlob), updateAvatar, std::move(localBlob), true);
             },
             [this, presence=getPresence()](const QString& error, const QString& msg){
                 if (!presence)

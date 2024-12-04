@@ -220,11 +220,11 @@ void GraphUtils::createList(const QEnums::ListPurpose purpose, const QString& na
         }
 
         bskyClient()->uploadBlob(blob, mimeType,
-            [this, presence=getPresence(), purpose, name, description](auto blob){
+            [this, presence=getPresence(), purpose, name, description](auto localBlob){
                 if (!presence)
                     return;
 
-                continueCreateList(purpose, name, description, std::move(blob));
+                continueCreateList(purpose, name, description, std::move(localBlob));
             },
             [this, presence=getPresence()](const QString& error, const QString& msg){
                 if (!presence)
@@ -282,11 +282,11 @@ void GraphUtils::updateList(const QString& listUri, const QString& name,
         }
 
         bskyClient()->uploadBlob(blob, mimeType,
-            [this, presence=getPresence(), listUri, name, description](auto blob){
+            [this, presence=getPresence(), listUri, name, description](auto localBlob){
                 if (!presence)
                     return;
 
-                continueUpdateList(listUri, name, description, std::move(blob), true);
+                continueUpdateList(listUri, name, description, std::move(localBlob), true);
             },
             [this, presence=getPresence()](const QString& error, const QString& msg){
                 if (!presence)

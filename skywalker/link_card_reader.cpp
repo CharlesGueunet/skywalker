@@ -124,13 +124,13 @@ void LinkCardReader::getLinkCard(const QString& link, bool retry)
         {
             qDebug() << "Create Giphy link card";
 
-            auto* card = makeLinkCard(
+            auto* linkedCard = makeLinkCard(
                 gifUrl,
                 QString(tr("Giphy GIF posted from Skywalker %1").arg(SKYWALKER_HANDLE)),
                 QString(tr("This GIF has been posted from Skywalker for Android. Get Skywalker from Google Play.<br>Bluesky: %1")).arg(SKYWALKER_HANDLE),
                 gifUrl);
 
-            emit linkCard(card);
+            emit linkCard(linkedCard);
             return;
         }
     }
@@ -155,7 +155,7 @@ void LinkCardReader::getLinkCard(const QString& link, bool retry)
     connect(reply, &QNetworkReply::finished, this, [this, reply]{ extractLinkCard(reply); });
     connect(reply, &QNetworkReply::errorOccurred, this, [this, reply](auto errCode){ requestFailed(reply, errCode); });
     connect(reply, &QNetworkReply::sslErrors, this, [this, reply]{ requestSslFailed(reply); });
-    connect(reply, &QNetworkReply::redirected, this, [this, reply](const QUrl& url){ redirect(reply, url); });
+    connect(reply, &QNetworkReply::redirected, this, [this, reply](const QUrl& lURL){ redirect(reply, lURL); });
 }
 
 static QString matchRegexes(const std::vector<QRegularExpression>& regexes, const QByteArray& data, const QString& group)

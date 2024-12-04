@@ -226,8 +226,8 @@ void PostUtils::addThreadgate(const QString& uri, const QString& cid, bool allow
 {
     ListViewBasicList restrictionLists;
 
-    for (const auto& uri : allowList)
-        restrictionLists.push_back(ListViewBasic(uri, "", uri, ATProto::AppBskyGraph::ListPurpose::CURATE_LIST, ""));
+    for (const auto& allowedUri : allowList)
+        restrictionLists.push_back(ListViewBasic(allowedUri, "", allowedUri, ATProto::AppBskyGraph::ListPurpose::CURATE_LIST, ""));
 
     addThreadgate(uri, cid, allowMention, allowFollowing, restrictionLists, allowNobody, hiddenReplies);
 }
@@ -529,11 +529,11 @@ void PostUtils::continuePost(const QStringList& imageFileNames, const QStringLis
     }
 
     bskyClient()->uploadBlob(blob, mimeType,
-        [this, presence=getPresence(), imgSize, imageFileNames, altTexts, post, imgIndex](auto blob){
+        [this, presence=getPresence(), imgSize, imageFileNames, altTexts, post, imgIndex](auto lBlob){
             if (!presence)
                 return;
 
-            postMaster()->addImageToPost(*post, std::move(blob), imgSize.width(), imgSize.height(), altTexts[imgIndex]);
+            postMaster()->addImageToPost(*post, std::move(lBlob), imgSize.width(), imgSize.height(), altTexts[imgIndex]);
             continuePost(imageFileNames, altTexts, post, imgIndex + 1);
         },
         [this, presence=getPresence()](const QString& error, const QString& msg){
@@ -625,12 +625,12 @@ void PostUtils::continuePost(const LinkCard* card, QImage thumb, ATProto::AppBsk
     emit postProgress(tr("Uploading card image"));
 
     bskyClient()->uploadBlob(blob, mimeType,
-        [this, presence=getPresence(), card, post](auto blob){
+        [this, presence=getPresence(), card, post](auto lBlob){
             if (!presence)
                 return;
 
             postMaster()->addExternalToPost(*post, card->getLink(), card->getTitle(),
-                    card->getDescription(), std::move(blob));
+                    card->getDescription(), std::move(lBlob));
             continuePost(post);
         },
         [this, presence=getPresence()](const QString& error, const QString& msg){

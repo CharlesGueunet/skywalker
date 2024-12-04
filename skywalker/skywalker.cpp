@@ -215,11 +215,11 @@ bool Skywalker::resumeSession(bool retry)
                         startRefreshTimers();
                         emit resumeSessionOk();
                     },
-                    [this](const QString& error, const QString& msg){
-                        qDebug() << "Session could not be refreshed:" << error << " - " << msg;
+                    [this](const QString& lError, const QString& lMsg){
+                        qDebug() << "Session could not be refreshed:" << lError << " - " << lMsg;
                         mUserSettings.clearTokens(mUserDid);
                         mBsky->clearSession();
-                        emit resumeSessionFailed(msg);
+                        emit resumeSessionFailed(lMsg);
                     });
             }
             else
@@ -240,11 +240,11 @@ bool Skywalker::resumeSession(bool retry)
                         saveSession(*mBsky->getSession());
                         resumeSession(true);
                     },
-                    [this, did=session.mDid](const QString& error, const QString& msg){
-                        qDebug() << "Session could not be refreshed:" << error << " - " << msg;
+                    [this, did=session.mDid](const QString& lError, const QString& lMsg){
+                        qDebug() << "Session could not be refreshed:" << lError << " - " << lMsg;
                         mUserSettings.clearTokens(did);
                         mBsky->clearSession();
-                        emit resumeSessionFailed(msg);
+                        emit resumeSessionFailed(lMsg);
                     });
             }
             else
@@ -276,8 +276,8 @@ void Skywalker::deleteSession()
             mUserSettings.clearTokens(did);
             emit sessionDeleted();
         },
-        [this, did](const QString& error, const QString& msg){
-            qDebug() << "Session could not be deleted:" << did << error << " - " << msg;
+        [this, did](const QString& lError, const QString& lMsg){
+            qDebug() << "Session could not be deleted:" << did << lError << " - " << lMsg;
             mUserSettings.clearTokens(did);
             mBsky->clearSession();
             emit sessionDeleted();
@@ -1049,9 +1049,9 @@ void Skywalker::getFeed(int modelId, int limit, int maxPages, int minEntries, co
         [this, modelId, maxPages, minEntries, cursor](auto feed){
             setGetFeedInProgress(false);
             int addedPosts = 0;
-            auto* model = getPostFeedModel(modelId);
+            auto* postFeedModel = getPostFeedModel(modelId);
 
-            if (!model)
+            if (!postFeedModel)
             {
                 qWarning() << "Model does not exist:" << modelId;
                 return;
@@ -1059,14 +1059,14 @@ void Skywalker::getFeed(int modelId, int limit, int maxPages, int minEntries, co
 
             if (cursor.isEmpty())
             {
-                model->setFeed(std::move(feed));
-                addedPosts = model->rowCount();
+                postFeedModel->setFeed(std::move(feed));
+                addedPosts = postFeedModel->rowCount();
             }
             else
             {
-                const int oldRowCount = model->rowCount();
-                model->addFeed(std::move(feed));
-                addedPosts = model->rowCount() - oldRowCount;
+                const int oldRowCount = postFeedModel->rowCount();
+                postFeedModel->addFeed(std::move(feed));
+                addedPosts = postFeedModel->rowCount() - oldRowCount;
             }
 
             const int postsToAdd = minEntries - addedPosts;
@@ -1140,9 +1140,9 @@ void Skywalker::getListFeed(int modelId, int limit, int maxPages, int minEntries
         [this, modelId, maxPages, minEntries, cursor](auto feed){
             setGetFeedInProgress(false);
             int addedPosts = 0;
-            auto* model = getPostFeedModel(modelId);
+            auto* postFeedModel = getPostFeedModel(modelId);
 
-            if (!model)
+            if (!postFeedModel)
             {
                 qWarning() << "Model does not exist:" << modelId;
                 return;
@@ -1150,14 +1150,14 @@ void Skywalker::getListFeed(int modelId, int limit, int maxPages, int minEntries
 
             if (cursor.isEmpty())
             {
-                model->setFeed(std::move(feed));
-                addedPosts = model->rowCount();
+                postFeedModel->setFeed(std::move(feed));
+                addedPosts = postFeedModel->rowCount();
             }
             else
             {
-                const int oldRowCount = model->rowCount();
-                model->addFeed(std::move(feed));
-                addedPosts = model->rowCount() - oldRowCount;
+                const int oldRowCount = postFeedModel->rowCount();
+                postFeedModel->addFeed(std::move(feed));
+                addedPosts = postFeedModel->rowCount() - oldRowCount;
             }
 
             const int postsToAdd = minEntries - addedPosts;
@@ -1230,9 +1230,9 @@ void Skywalker::getQuotesFeed(int modelId, int limit, int maxPages, int minEntri
                    [this, modelId, maxPages, minEntries, cursor](auto feed){
                        setGetFeedInProgress(false);
                        int addedPosts = 0;
-                       auto* model = getPostFeedModel(modelId);
+                       auto* postFeedModel = getPostFeedModel(modelId);
 
-                       if (!model)
+                       if (!postFeedModel)
                        {
                            qWarning() << "Model does not exist:" << modelId;
                            return;
@@ -1240,14 +1240,14 @@ void Skywalker::getQuotesFeed(int modelId, int limit, int maxPages, int minEntri
 
                        if (cursor.isEmpty())
                        {
-                           model->setFeed(std::move(feed));
-                           addedPosts = model->rowCount();
+                           postFeedModel->setFeed(std::move(feed));
+                           addedPosts = postFeedModel->rowCount();
                        }
                        else
                        {
-                           const int oldRowCount = model->rowCount();
-                           model->addFeed(std::move(feed));
-                           addedPosts = model->rowCount() - oldRowCount;
+                           const int oldRowCount = postFeedModel->rowCount();
+                           postFeedModel->addFeed(std::move(feed));
+                           addedPosts = postFeedModel->rowCount() - oldRowCount;
                        }
 
                        const int postsToAdd = minEntries - addedPosts;
@@ -1403,11 +1403,11 @@ void Skywalker::getPostThread(const QString& uri, int modelId)
 
             if (modelId < 0)
             {
-                auto model = std::make_unique<PostThreadModel>(uri,
+                auto postThreadModel = std::make_unique<PostThreadModel>(uri,
                     mUserDid, mUserFollows, mMutedReposts, mContentFilter, mBookmarks,
                     mMutedWords, *mFocusHashtags, mSeenHashtags, this);
 
-                int postEntryIndex = model->setPostThread(thread);
+                int postEntryIndex = postThreadModel->setPostThread(thread);
 
                 if (postEntryIndex < 0)
                 {
@@ -1416,15 +1416,15 @@ void Skywalker::getPostThread(const QString& uri, int modelId)
                     return;
                 }
 
-                int id = mPostThreadModels.put(std::move(model));
+                int id = mPostThreadModels.put(std::move(postThreadModel));
                 emit postThreadOk(id, postEntryIndex);
             }
             else
             {
-                auto model = getPostThreadModel(modelId);
+                auto postThreadModel = getPostThreadModel(modelId);
 
-                if (model)
-                    model->setPostThread(thread);
+                if (postThreadModel)
+                    postThreadModel->setPostThread(thread);
                 else
                     qWarning() << "Model does not exist:" << modelId;
             }
@@ -1750,14 +1750,14 @@ void Skywalker::getAuthorFeed(int id, int limit, int maxPages, int minEntries, c
     mBsky->getAuthorFeed(author.getDid(), limit, Utils::makeOptionalString(cursor), filter, true,
         [this, id, maxPages, minEntries, cursor](auto feed){
             setGetAuthorFeedInProgress(false);
-            const auto* model = mAuthorFeedModels.get(id);
+            const auto* authFeedModel = mAuthorFeedModels.get(id);
 
-            if (!model)
+            if (!authFeedModel)
                 return; // user has closed the view
 
             int added = cursor.isEmpty() ?
-                    (*model)->setFeed(std::move(feed)) :
-                    (*model)->addFeed(std::move(feed));
+                    (*authFeedModel)->setFeed(std::move(feed)) :
+                    (*authFeedModel)->addFeed(std::move(feed));
 
             // When replies are filtered out, a page can easily become empty
             int entriesToAdd = minEntries - added;
@@ -1841,14 +1841,14 @@ void Skywalker::getAuthorLikes(int id, int limit, int maxPages, int minEntries, 
     mBsky->getActorLikes(author.getDid(), limit, Utils::makeOptionalString(cursor),
         [this, id, maxPages, minEntries, cursor](auto feed){
             setGetAuthorFeedInProgress(false);
-            const auto* model = mAuthorFeedModels.get(id);
+            const auto* authFeedModel = mAuthorFeedModels.get(id);
 
-            if (!model)
+            if (!authFeedModel)
                 return; // user has closed the view
 
             int added = cursor.isEmpty() ?
-                            (*model)->setFeed(std::move(feed)) :
-                            (*model)->addFeed(std::move(feed));
+                            (*authFeedModel)->setFeed(std::move(feed)) :
+                            (*authFeedModel)->addFeed(std::move(feed));
 
             // When replies are filtered out, a page can easily become empty
             int entriesToAdd = minEntries - added;
@@ -1978,15 +1978,15 @@ void Skywalker::getAuthorFeedList(const QString& did, int id, const QString& cur
     mBsky->getActorFeeds(did, {}, Utils::makeOptionalString(cursor),
         [this, id, cursor](auto output){
             setGetFeedInProgress(false);
-            const auto* model = mFeedListModels.get(id);
+            const auto* feedListModel = mFeedListModels.get(id);
 
-            if (!model)
+            if (!feedListModel)
                 return; // user has closed the view
 
             if (cursor.isEmpty())
-                (*model)->clear();
+                (*feedListModel)->clear();
 
-            (*model)->addFeeds(std::move(output->mFeeds), output->mCursor.value_or(""));
+            (*feedListModel)->addFeeds(std::move(output->mFeeds), output->mCursor.value_or(""));
         },
         [this](const QString& error, const QString& msg){
             setGetFeedInProgress(false);
@@ -2062,15 +2062,15 @@ void Skywalker::getAuthorStarterPackList(const QString& did, int id, const QStri
     mBsky->getActorStarterPacks(did, {}, Utils::makeOptionalString(cursor),
         [this, id, cursor](auto output){
             setGetStarterPackListInProgress(false);
-            const auto* model = mStarterPackListModels.get(id);
+            const auto* spListModel = mStarterPackListModels.get(id);
 
-            if (!model)
+            if (!spListModel)
                 return; // user has closed the view
 
             if (cursor.isEmpty())
-                (*model)->clear();
+                (*spListModel)->clear();
 
-            (*model)->addStarterPacks(std::move(output->mStarterPacks), output->mCursor.value_or(""));
+            (*spListModel)->addStarterPacks(std::move(output->mStarterPacks), output->mCursor.value_or(""));
         },
         [this](const QString& error, const QString& msg){
             setGetStarterPackListInProgress(false);

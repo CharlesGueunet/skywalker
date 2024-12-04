@@ -7,6 +7,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QFont>
+#include <QString>
 
 int main(int argc, char *argv[])
 {
@@ -28,7 +29,8 @@ int main(int argc, char *argv[])
         &app, []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
 
-    const QUrl url(u"qrc:/skywalker/Main.qml"_qs);
+    using namespace Qt::Literals::StringLiterals;
+    const auto url = "qrc:/skywalker/Main.qml"_L1;
     engine.load(url);
 
     return app.exec();
